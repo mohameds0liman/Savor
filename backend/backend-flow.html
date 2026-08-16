@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backend Architecture Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161d;
+      --surface-2: #1a1e28;
+      --border: #252933;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: #e2e4ea;
+      min-height: 100vh;
+    }
+
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Arrow vertical */
+    .arrow-down {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .arrow-down .shaft {
+      width: 2px;
+      height: 28px;
+      background: #2e3340;
+    }
+    .arrow-down .head {
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid #2e3340;
+    }
+
+    /* Arrow horizontal */
+    .arrow-right {
+      display: flex;
+      align-items: center;
+    }
+    .arrow-right .shaft {
+      height: 2px;
+      width: 20px;
+      background: #2e3340;
+    }
+    .arrow-right .head {
+      width: 0; height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 7px solid #2e3340;
+    }
+
+    /* Layer cards */
+    .layer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      transition: border-color 0.2s;
+    }
+    .layer-card:hover { border-color: #3a3f50; }
+
+    /* Colored accents per layer */
+    .accent-gray   { border-left: 3px solid #6b7280; }
+    .accent-amber  { border-left: 3px solid #f59e0b; }
+    .accent-teal   { border-left: 3px solid #14b8a6; }
+    .accent-purple { border-left: 3px solid #8b5cf6; }
+    .accent-blue   { border-left: 3px solid #3b82f6; }
+    .accent-coral  { border-left: 3px solid #f97316; }
+    .accent-green  { border-left: 3px solid #22c55e; }
+
+    /* Badge */
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    .badge-gray   { background: #1f2028; color: #9ca3af; }
+    .badge-amber  { background: #2a1f0a; color: #f59e0b; }
+    .badge-teal   { background: #0a1f1e; color: #2dd4bf; }
+    .badge-purple { background: #1a0f2e; color: #a78bfa; }
+    .badge-blue   { background: #0a1525; color: #60a5fa; }
+    .badge-coral  { background: #2a1208; color: #fb923c; }
+    .badge-green  { background: #0a1f10; color: #4ade80; }
+
+    .node-title { font-size: 13px; font-weight: 600; color: #e2e4ea; }
+    .node-sub   { font-size: 11.5px; color: #6b7280; margin-top: 3px; line-height: 1.5; }
+    .node-sub code { font-size: 10.5px; color: #9ca3af; background: #1a1e28; padding: 1px 4px; border-radius: 3px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #3d4252;
+      margin-bottom: 8px;
+    }
+
+    /* Legend dot */
+    .leg-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+    /* Return path dashed */
+    .return-path {
+      border-left: 2px dashed #2e3340;
+      border-bottom: 2px dashed #2e3340;
+      border-bottom-left-radius: 8px;
+    }
+
+    .page-header {
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="page-header px-10 py-6 flex items-center justify-between">
+    <div>
+      <p class="text-xs text-gray-500 mono mb-1">backend/src/</p>
+      <h1 class="text-xl font-semibold text-white">Request Lifecycle</h1>
+      <p class="text-sm text-gray-500 mt-1">Browser → MongoDB and back</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <span class="badge badge-gray leg-dot" style="width:auto;background:#1f2028;color:#9ca3af">● Entrypoint</span>
+      <span class="badge badge-amber" style="width:auto">● Middleware</span>
+      <span class="badge badge-teal" style="width:auto">● Routes</span>
+      <span class="badge badge-purple" style="width:auto">● Controllers</span>
+      <span class="badge badge-blue" style="width:auto">● Services</span>
+      <span class="badge badge-coral" style="width:auto">● Models</span>
+      <span class="badge badge-green" style="width:auto">● Database</span>
+    </div>
+  </div>
+
+  <div class="px-10 py-10 max-w-6xl mx-auto space-y-3">
+
+    <!-- ── ENTRYPOINT ── -->
+    <p class="section-label">1 · Entrypoint</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-gray flex-1 min-w-[180px]">
+        <span class="badge badge-gray">client</span>
+        <div class="node-title">Browser / HTTP client</div>
+        <div class="node-sub">Sends <code>GET /api/recipes</code> or <code>POST /api/recipes</code></div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-gray flex-1 min-w-[180px]">
+        <span class="badge badge-gray">server.ts</span>
+        <div class="node-title">Express starts on :5000</div>
+        <div class="node-sub">Single entry. Listens for all incoming requests. Almost empty file.</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-gray flex-1 min-w-[200px]">
+        <span class="badge badge-gray">app.ts</span>
+        <div class="node-title">App registers all routes</div>
+        <div class="node-sub">
+          <code>app.use("/api", recipeRoutes)</code><br>
+          <code>app.use("/api", authRoutes)</code><br>
+          <code>app.use("/api", userRoutes)</code>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- arrow down -->
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── MIDDLEWARE ── -->
+    <p class="section-label">2 · Middleware — runs before every controller</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-amber flex-1 min-w-[180px]">
+        <span class="badge badge-amber">middlewares/auth.ts</span>
+        <div class="node-title">Auth guard</div>
+        <div class="node-sub">Verifies JWT. If invalid → returns <code>401</code> immediately. Controller never fires.</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-amber flex-1 min-w-[180px]">
+        <span class="badge badge-amber">middlewares/validation.ts</span>
+        <div class="node-title">Body validation</div>
+        <div class="node-sub">Zod/Joi schema check. If shape is wrong → <code>400</code> early, no DB hit.</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-amber flex-1 min-w-[180px]">
+        <span class="badge badge-amber">middlewares/error.ts</span>
+        <div class="node-title">Global error handler</div>
+        <div class="node-sub">Catches anything thrown below. Returns consistent JSON error shape always.</div>
+      </div>
+
+    </div>
+
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── ROUTES ── -->
+    <p class="section-label">3 · Routes — map URL to function, no logic</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-teal flex-1 min-w-[180px]">
+        <span class="badge badge-teal">routes/recipe.routes.ts</span>
+        <div class="node-title">Recipe endpoints</div>
+        <div class="node-sub">
+          <code>GET  /recipes</code> → <code>getRecipes()</code><br>
+          <code>POST /recipes</code> → <code>createRecipe()</code>
+        </div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-teal flex-1 min-w-[180px]">
+        <span class="badge badge-teal">routes/auth.routes.ts</span>
+        <div class="node-title">Auth endpoints</div>
+        <div class="node-sub">
+          <code>POST /login</code>    → <code>login()</code><br>
+          <code>POST /register</code> → <code>register()</code>
+        </div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-teal flex-1 min-w-[180px]">
+        <span class="badge badge-teal">routes/user.routes.ts</span>
+        <div class="node-title">User endpoints</div>
+        <div class="node-sub">
+          <code>GET   /users/me</code> → <code>getMe()</code><br>
+          <code>PATCH /users/me</code> → <code>updateMe()</code>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── CONTROLLERS ── -->
+    <p class="section-label">4 · Controllers — handle request, coordinate response, no DB knowledge</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-purple flex-1 min-w-[200px]">
+        <span class="badge badge-purple">controllers/recipe.controller.ts</span>
+        <div class="node-title">getRecipes() · createRecipe()</div>
+        <div class="node-sub">Reads <code>req</code> → calls service → returns <code>res.json()</code>. Never touches MongoDB directly.</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-purple flex-1 min-w-[200px]">
+        <span class="badge badge-purple">controllers/auth.controller.ts</span>
+        <div class="node-title">login() · register()</div>
+        <div class="node-sub">Reads credentials from <code>req.body</code> → calls <code>authService</code> → returns token</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-purple flex-1 min-w-[200px]">
+        <span class="badge badge-purple">controllers/user.controller.ts</span>
+        <div class="node-title">getMe() · updateMe()</div>
+        <div class="node-sub">Reads <code>req.user</code> set by <code>auth middleware</code> → delegates to <code>userService</code></div>
+      </div>
+
+    </div>
+
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── SERVICES ── -->
+    <p class="section-label">5 · Services — all business logic, Express-free</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-blue flex-1 min-w-[200px]">
+        <span class="badge badge-blue">services/recipe.service.ts</span>
+        <div class="node-title">getAllRecipes() · createRecipe()</div>
+        <div class="node-sub">Validate → check duplicates → generate slug → save to DB → return result</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-blue flex-1 min-w-[200px]">
+        <span class="badge badge-blue">services/auth.service.ts</span>
+        <div class="node-title">login() · register()</div>
+        <div class="node-sub">Hash password → create user → sign JWT via <code>utils/jwt.ts</code> → return token</div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-blue flex-1 min-w-[200px]">
+        <span class="badge badge-blue">services/user.service.ts</span>
+        <div class="node-title">getUser() · updateUser()</div>
+        <div class="node-sub">Fetch from DB, format with <code>utils/helpers.ts</code>, return clean DTO</div>
+      </div>
+
+    </div>
+
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── MODELS ── -->
+    <p class="section-label">6 · Models — Mongoose schemas, talk to MongoDB</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-coral flex-1 min-w-[160px]">
+        <span class="badge badge-coral">models/Recipe.ts</span>
+        <div class="node-title">Recipe schema</div>
+        <div class="node-sub"><code>name · description · image</code><br><code>Recipe.find() · Recipe.create()</code></div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-coral flex-1 min-w-[160px]">
+        <span class="badge badge-coral">models/User.ts</span>
+        <div class="node-title">User schema</div>
+        <div class="node-sub"><code>name · email · passwordHash · role</code><br><code>User.findOne() · User.create()</code></div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-coral flex-1 min-w-[160px]">
+        <span class="badge badge-coral">models/Organization.ts</span>
+        <div class="node-title">Org schema</div>
+        <div class="node-sub"><code>name · members · plan</code></div>
+      </div>
+
+    </div>
+
+    <div class="ml-6"><div class="arrow-down"><div class="shaft"></div><div class="head"></div></div></div>
+
+    <!-- ── DATABASE ── -->
+    <p class="section-label">7 · Database & config</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-green flex-1 min-w-[200px]">
+        <span class="badge badge-green">config/db.ts</span>
+        <div class="node-title">MongoDB via Mongoose</div>
+        <div class="node-sub"><code>mongoose.connect()</code> — reads URI from <code>config/env.ts</code></div>
+      </div>
+
+      <div class="arrow-right self-center"><div class="shaft"></div><div class="head"></div></div>
+
+      <div class="layer-card accent-green flex-1 min-w-[200px]">
+        <span class="badge badge-green">config/env.ts</span>
+        <div class="node-title">Environment config</div>
+        <div class="node-sub">Reads <code>.env</code> — <code>MONGO_URI · JWT_SECRET · PORT · CLOUDINARY_KEY</code></div>
+      </div>
+
+    </div>
+
+    <!-- ── DIVIDER ── -->
+    <div class="border-t border-gray-800 my-8"></div>
+
+    <!-- ── SUPPORT LAYER ── -->
+    <p class="section-label">Support layers — shared across the whole app</p>
+    <div class="flex items-start gap-3 flex-wrap">
+
+      <div class="layer-card accent-amber flex-1 min-w-[140px]">
+        <span class="badge badge-amber">utils/jwt.ts</span>
+        <div class="node-title">JWT helpers</div>
+        <div class="node-sub"><code>signToken()</code><br><code>verifyToken()</code></div>
+      </div>
+
+      <div class="layer-card accent-amber flex-1 min-w-[140px]">
+        <span class="badge badge-amber">utils/logger.ts</span>
+        <div class="node-title">Logger</div>
+        <div class="node-sub">Structured request & error logging</div>
+      </div>
+
+      <div class="layer-card accent-amber flex-1 min-w-[140px]">
+        <span class="badge badge-amber">utils/helpers.ts</span>
+        <div class="node-title">Helpers</div>
+        <div class="node-sub"><code>generateSlug()</code><br><code>formatDate()</code><br><code>capitalize()</code></div>
+      </div>
+
+      <div class="layer-card accent-purple flex-1 min-w-[140px]">
+        <span class="badge badge-purple">types/</span>
+        <div class="node-title">TypeScript types</div>
+        <div class="node-sub"><code>RecipeDTO · UserDTO<br>AuthRequest</code> — no logic, pure types</div>
+      </div>
+
+      <div class="layer-card accent-blue flex-1 min-w-[140px]">
+        <span class="badge badge-blue">uploads/</span>
+        <div class="node-title">File uploads</div>
+        <div class="node-sub">Static user-uploaded images if not on Cloudinary</div>
+      </div>
+
+    </div>
+
+    <!-- ── FULL FLOW SUMMARY ── -->
+    <div class="border-t border-gray-800 my-8"></div>
+    <p class="section-label">Full request trace — POST /api/recipes</p>
+
+    <div style="background: #13161d; border: 1px solid #252933; border-radius: 12px; padding: 20px 24px;">
+      <div class="flex flex-wrap gap-2 items-center text-sm">
+        <span style="color:#6b7280">Browser</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#1f2028;color:#9ca3af;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">server.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#1f2028;color:#9ca3af;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">app.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#2a1f0a;color:#f59e0b;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">auth.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#2a1f0a;color:#f59e0b;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">validation.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#0a1f1e;color:#2dd4bf;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">recipe.routes.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#1a0f2e;color:#a78bfa;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">recipe.controller.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#0a1525;color:#60a5fa;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">recipe.service.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#2a1208;color:#fb923c;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">Recipe.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#0a1f10;color:#4ade80;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">MongoDB</span>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2 items-center text-sm">
+        <span style="color:#3d4252">↩ Response:</span>
+        <span style="background:#0a1f10;color:#4ade80;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">MongoDB</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#2a1208;color:#fb923c;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">Recipe.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#0a1525;color:#60a5fa;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">recipe.service.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="background:#1a0f2e;color:#a78bfa;padding:3px 8px;border-radius:5px;font-family:monospace;font-size:12px">recipe.controller.ts</span>
+        <span style="color:#3d4252">→</span>
+        <span style="color:#6b7280">res.json() → Browser</span>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-600 mt-8 text-center mono">backend/ · Express + TypeScript + MongoDB</p>
+
+  </div>
+</body>
+</html>
