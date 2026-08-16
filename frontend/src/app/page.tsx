@@ -1,11 +1,25 @@
-import Image from "next/image";
+import Navbar from "@/components/navbar/page";
+import Hero from "@/components/hero/page";
+import Recipes from "@/components/recipes/page";
+import Footer from "@/components/footer/page"
 
-export default function Home() {
+
+function Home() {
   return (
     <div>
-      <main>
+      <main className="min-h-screen bg-white text-black">
+        <div className="">
+          <Navbar/>
+          <Hero/>
+          <Recipes/>
+          <Footer/>
+        </div>
         
+        <h1>Hello World</h1>
       </main>
     </div>
   );
 }
+
+
+export default Home;
