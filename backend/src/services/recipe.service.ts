@@ -3,24 +3,54 @@ import { CreateRecipeDTO ,UpdateRecipeDTO } from "../middlewares/validation/reci
 
 
 export async function createRecipe(data: CreateRecipeDTO) {
-  return Recipe.create(data);
+  try{
+    const CreatedRecipe= await Recipe.create(data)
+    return CreatedRecipe
+  }catch(err){
+    console.error(err);
+  }
+  // return Recipe.create(data);
 }
 
 
 export async function getRecipes() {
-  return Recipe.find();
+  try{
+    const recipes= await Recipe.find()
+    return recipes
+  }catch(err){
+    console.error(err);
+  }
+  // return Recipe.find();
 }
 
 export async function getRecipe(id:string){
-  return Recipe.findById(id)
+  try{
+    const recipe= await Recipe.findById(id)
+    return recipe
+  }catch(err){
+    console.error(err);
+  }
+  // return Recipe.findById(id)
 }
 
 export async function updateRecipe(id:string ,data:UpdateRecipeDTO){
-  return Recipe.findByIdAndUpdate(id,data,{ new: true })
+  try{
+    const UpdatedRecipe= await Recipe.findByIdAndUpdate(id,data,{new:true ,runValidators:true})
+    return UpdatedRecipe
+  }catch(err){
+    console.error(err);
+  }
+  // return Recipe.findByIdAndUpdate(id,data,{ new: true ,runValidators:true})
 }
 
 export async function deleteRecipe(id:string){
-  return Recipe.findByIdAndDelete(id)
+  try{
+    const DeletedRecipe= await Recipe.findByIdAndDelete(id)
+    return DeletedRecipe
+  }catch(err){
+    console.error(err);
+  }
+  // return Recipe.findByIdAndDelete(id)
 }
 
 

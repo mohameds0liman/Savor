@@ -19,13 +19,13 @@ function Footer() {
                     </h3>
                 </div>
 
-                {/* Links (same as navbar) */}
+                {/* Links (same as navbar)
                 <nav className="flex items-center gap-8">
                     <Link href={"/Home"} className={navLink}>Home</Link>
                     <Link href={"/Favourites"} className={navLink}>Favourites</Link>
                     <Link href={"/Recipes"} className={navLink}>Recipes</Link>
                     <Link href={"/Contact"} className={navLink}>Contact</Link>
-                </nav>
+                </nav> */}
             </div>
 
             {/* Bottom bar */}

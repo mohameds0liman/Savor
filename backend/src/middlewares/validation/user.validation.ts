@@ -1,9 +1,20 @@
 import { z } from "zod";
 
-export const RegisterSchema = z.object({
-  username: z.string().min(3),
-  email: z.email(),
-  password: z.string().min(8),
+
+export const CreateUserSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name is too long"),
+
+  email: z
+    .email("Invalid email address")
+    .toLowerCase(),
+
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100),
 });
 
-export type RegisterDTO = z.infer<typeof RegisterSchema>;
+export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
