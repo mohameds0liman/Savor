@@ -18,3 +18,10 @@ export const CreateUserSchema = z.object({
 });
 
 export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
+
+
+//update user schema is a partial of create user schema, meaning that all fields are optional
+
+export const UpdateUserSchema =CreateUserSchema.partial();
+
+export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>;

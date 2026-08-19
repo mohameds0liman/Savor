@@ -4,7 +4,7 @@ import { CreateRecipeDTO ,UpdateRecipeDTO } from "../middlewares/validation/reci
 
 export async function createRecipe(data: CreateRecipeDTO) {
   try{
-    const CreatedRecipe= await Recipe.create(data)
+    const CreatedRecipe= await Recipe.create({...data,owner: "507f1f77bcf86cd799439011"})
     return CreatedRecipe
   }catch(err){
     console.error(err);

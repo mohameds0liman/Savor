@@ -14,8 +14,6 @@ function Home() {
           <Recipes/>
           <Footer/>
         </div>
-        
-        <h1>Hello World</h1>
       </main>
     </div>
   );

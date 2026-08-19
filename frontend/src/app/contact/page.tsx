@@ -53,10 +53,10 @@ function Contact() {
             <div className="text-left">
             <p className="text-xs font-medium text-gray-500">Call Us</p>
             <a
-                href="tel:+15551234567"
+                href="tel:+2001004435342"
                 className="text-sm font-semibold text-gray-900 hover:text-orange-400"
             >
-                (555) 123-4567
+                01004435342
             </a>
             </div>
         </div>
@@ -71,10 +71,10 @@ function Contact() {
             <div className="text-left">
             <p className="text-xs font-medium text-gray-500">Email Us</p>
             <a
-                href="mailto:hello@zestsavory.com"
+                href="moahmedsoliman12571@gmail.com"
                 className="text-sm font-semibold text-gray-900 hover:text-orange-400"
             >
-                hello@zestsavory.com
+                moahmedsoliman12571@gmail.com
             </a>
             </div>
         </div>

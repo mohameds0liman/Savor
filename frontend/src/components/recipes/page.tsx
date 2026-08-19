@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { HiHeart } from "react-icons/hi2";
 
 type Recipe= {
   _id: number;
@@ -10,23 +11,8 @@ type Recipe= {
 }
 
 
- function RecipeList() {
-//   const recipes: Recipe[] = [
-//     { id: 1, name: "Pizza" ,description:"Delicious & Fresh",image:"https://www.modernhoney.com/wp-content/uploads/2025/01/BBQ-Chicken-Pizza-4-crop-scaled.jpg"},
-//     { id: 2, name: "Burger",description:"Amazing" ,image:"https://www.lurch.de/media/b5/4c/70/1693989554/burger-classic-cheese-rezept.jpg?ts=1753774543" },
-//     { id: 3, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 4, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 5, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 6, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 7, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 8, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 9, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-//     { id: 10, name: "Pasta",description:"Delicious" , image:"https://www.chewoutloud.com/wp-content/uploads/2025/09/Chicken-Fajita-Pasta-in-Pan-Square.jpg"},
-// ];
-////////////////////////////////////////////////////
-  
-
-const [recipes, setRecipes] = useState<Recipe[]>([]);
+function RecipeList() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
 
   useEffect(()=>{
     axios.get("http://localhost:3000/api/recipes")
@@ -36,9 +22,9 @@ const [recipes, setRecipes] = useState<Recipe[]>([]);
   },[])
 ////////////////////////////////////////////////////
   return (
-    <div className="grid grid-cols-3 gap-6">
+    <div className="grid grid-cols-3 gap-6" id="recipe-card">
       {recipes?.map((recipe) => (
-        <div key={recipe?._id} className="flex flex-col items-center">
+        <div key={recipe?._id} className="recipe-card flex flex-col items-center">
             <div
             className="border p-30 rounded-xl bg-cover bg-center shadow-xl"
             style={{ backgroundImage: `url(${recipe?.image})`}}>
@@ -49,6 +35,9 @@ const [recipes, setRecipes] = useState<Recipe[]>([]);
             <p className="mt-1 text-sm text-gray-500">
                 {recipe?.description}
             </p>
+            <div className="icons">
+              <HiHeart />
+            </div>
         </div>
       ))}
     </div>
