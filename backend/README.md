@@ -106,3 +106,21 @@ Controller
 ↓
 
 Browser
+
+
+
+
+
+
+routes/auth.routes.ts
+  POST /api/auth/signup   → validate(CreateUserSchema) → authController.signup
+  POST /api/auth/login    → validate(LoginSchema)      → authController.login
+  POST /api/auth/refresh  → authController.refresh
+  POST /api/auth/logout   → authController.logout
+
+routes/user.routes.ts        (all behind `authenticate`)
+  GET   /api/users/me         → userController.getMe
+  PATCH /api/users/me         → userController.updateMe
+  GET   /api/users             → authorize("admin") → userController.getUsers
+  DELETE /api/users/:id        → authorize("admin") → userController.deleteUser
+  GET/POST/DELETE /api/users/me/favourites/:recipeId  → userController.*Favourite (use req.user.id, never a URL param)

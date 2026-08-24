@@ -2,14 +2,13 @@ import Recipe from "../models/Recipe"
 import { CreateRecipeDTO ,UpdateRecipeDTO } from "../middlewares/validation/recipe.validation"
 
 
-export async function createRecipe(data: CreateRecipeDTO) {
+export async function createRecipe(userId:string, data: CreateRecipeDTO) {
   try{
-    const CreatedRecipe= await Recipe.create({...data,owner: "507f1f77bcf86cd799439011"})
+    const CreatedRecipe= await Recipe.create({...data,owner: userId})
     return CreatedRecipe
   }catch(err){
     console.error(err);
   }
-  // return Recipe.create(data);
 }
 
 
@@ -20,7 +19,6 @@ export async function getRecipes() {
   }catch(err){
     console.error(err);
   }
-  // return Recipe.find();
 }
 
 export async function getRecipe(id:string){
@@ -30,7 +28,6 @@ export async function getRecipe(id:string){
   }catch(err){
     console.error(err);
   }
-  // return Recipe.findById(id)
 }
 
 export async function updateRecipe(id:string ,data:UpdateRecipeDTO){
@@ -40,7 +37,6 @@ export async function updateRecipe(id:string ,data:UpdateRecipeDTO){
   }catch(err){
     console.error(err);
   }
-  // return Recipe.findByIdAndUpdate(id,data,{ new: true ,runValidators:true})
 }
 
 export async function deleteRecipe(id:string){
@@ -50,7 +46,6 @@ export async function deleteRecipe(id:string){
   }catch(err){
     console.error(err);
   }
-  // return Recipe.findByIdAndDelete(id)
 }
 
 

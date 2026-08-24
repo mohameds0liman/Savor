@@ -23,7 +23,7 @@ const UserSchema = new Schema(
     passwordHash: {
       type: String,
       required: true,
-      select: false,
+      select: false,  // <-- this line ensures that the passwordHash field is not returned in queries by default
     },
 
     image: {
@@ -36,6 +36,12 @@ const UserSchema = new Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    favorites: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Recipe",
+      },
+    ],
   },
   {
     timestamps: true,

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState,useEffect } from "react";
+import { usePathname ,useRouter } from "next/navigation";
 
 function Navbar() {
   const pathname = usePathname();
+  const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const selectionStyle = (href: string) => {
     const isSelected = pathname === href;
-
     return `
       transition-all duration-300 cursor-pointer
       px-3 py-2 rounded-lg
@@ -19,6 +22,26 @@ function Navbar() {
           : "border border-transparent"
       }
     `;
+  };
+
+  useEffect(() => {
+    setUserName(localStorage.getItem("userName"));
+  }, []);
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+    setUserName(null);
+    router.push("/");
+  }
+  // this for Protect the route need login to redirect to login page to access them
+  const PROTECTED_ROUTES = ["/favourites", "/recipes"];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (PROTECTED_ROUTES.includes(href) && !localStorage.getItem("token")) {
+      e.preventDefault();
+      router.push("/login");
+    }
   };
 
   return (
@@ -38,12 +61,16 @@ function Navbar() {
 
         <Link
           href="/favourites"
+          onClick={(e) => handleNavClick(e, "/favourites")}
           className={selectionStyle("/favourites")}
         >
           Favourites
         </Link>
 
-        <Link href="/recipes" className={selectionStyle("/recipes")}>
+        <Link 
+          href="/recipes"
+          onClick={(e) => handleNavClick(e, "/recipes")}
+          className={selectionStyle("/recipes")}>
           My Recipes
         </Link>
 
@@ -51,15 +78,40 @@ function Navbar() {
           Contact
         </Link>
 
-        <button
-          className="
-            rounded-lg bg-orange-400 px-4 py-2 text-white
-            transition-colors duration-300
-            hover:bg-orange-500
-          "
+        {userName ? (
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="font-semibold text-orange-500 hover:underline"
+            >
+          {userName} ▾
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg">
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="block px-4 py-2 text-gray-800 transition-colors hover:bg-gray-50"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full px-4 py-2 text-left text-gray-800 transition-colors hover:bg-gray-50"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link
+          href="/login"
+          className="rounded-lg bg-orange-400 px-4 py-2 text-white transition-colors duration-300 hover:bg-orange-500"
         >
           Login
-        </button>
+        </Link>
+        )}
       </div>
     </nav>
   );
