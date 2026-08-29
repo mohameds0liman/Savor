@@ -1,7 +1,7 @@
 import { Router } from "express";
-
+import rateLimit from "express-rate-limit";
 import { validate } from "../middlewares/validate.middleware";
-
+import {auth} from "../middlewares/auth.middleware"
 import {
     CreateRecipeSchema,
     UpdateRecipeSchema
@@ -12,20 +12,22 @@ import {
     updateRecipe,
     getRecipes,
     getRecipe,
+    getUserRecipes,
     deleteRecipe
 } from "../controllers/recipe.controller";
 
 const router = Router();
-
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
 ///////////
-router.post("/recipes",validate(CreateRecipeSchema),createRecipe);
+router.post("/recipe",authLimiter,auth,validate(CreateRecipeSchema),createRecipe);
 
-router.patch("/recipes/:id",validate(UpdateRecipeSchema),updateRecipe);
+router.patch("/recipe/:id",authLimiter,auth,validate(UpdateRecipeSchema),updateRecipe);
 
-router.get("/recipes" , getRecipes);
-router.get("/recipes/:id" , getRecipe);
+router.get("/recipe" , getRecipes);
+router.get("/recipe/my" ,authLimiter,auth,getUserRecipes);
+router.get("/recipe/:id" , getRecipe);
 
-router.delete("/recipes/:id",deleteRecipe)
+router.delete("/recipe/:id",authLimiter,auth,deleteRecipe)
 ///////////
 
 export default router;

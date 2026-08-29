@@ -5,12 +5,15 @@ import dotenv from "dotenv"
 dotenv.config()
 const PORT=process.env.PORT || 5000
 
-async function startdb() {
+async function startServer() {
     await connectDB()
-}
 
-startdb()
-
-app.listen(PORT,()=>{
+    app.listen(PORT,()=>{
     console.log("server is listening to PORT: ",PORT)
 })
+}
+
+startServer()
+
+
+

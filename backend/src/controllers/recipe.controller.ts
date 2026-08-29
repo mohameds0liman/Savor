@@ -3,31 +3,91 @@ import { Request, Response } from "express";
 import * as recipeService from "../services/recipe.service";
 
 export async function createRecipe(req: Request, res: Response) {
-  const recipe = await recipeService.createRecipe(req.body);
-
-  res.status(201).json(recipe);
+  try {
+    const userId = req.user?.id
+    const data = req.body
+    const recipe = await recipeService.createRecipe(userId!, data);
+    res.status(201).json({message:"Recipe Created Successfully",data:recipe});
+  } catch (err) {res.status(500).json({ 
+      message: "Internal Server Error",
+      error:`error: ${(err as Error).name}: ${(err as Error).message}`
+    });
+  }
 }
 
 export async function getRecipes(req: Request, res: Response) {
-  const recipes = await recipeService.getRecipes();
-
-  res.json(recipes);
+  try {
+    const recipes = await recipeService.getRecipes();
+    res.json({message:"Recipes Fetched Successfully",data:recipes});
+  } catch (err) {
+    res.status(500).json({ 
+    message: "Internal Server Error",
+    error:`error: ${(err as Error).name}: ${(err as Error).message}`
+  });
+  }
 }
 
 export async function getRecipe(req: Request<{ id: string }>, res: Response) {
-  const recipe = await recipeService.getRecipe(req.params.id);
+  try {
+    const recipe = await recipeService.getRecipe(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    res.json({message:"Recipe Fetched Successfully",data:recipe});
+  } catch (err) {res.status(500).json({ 
+    message: "Internal Server Error",
+    error:`error: ${(err as Error).name}: ${(err as Error).message}`
+  });
+  }
+}
 
-  res.json(recipe);
+export async function getUserRecipes(req: Request, res: Response) {
+  const userId = req.user?.id
+  try {
+    const recipes = await recipeService.getUserRecipes(String(userId));
+    if (!recipes) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    res.json({message:"Recipes Fetched Successfully",data:recipes});
+  } catch (err) {res.status(500).json({ 
+    message: "Internal Server Error",
+    error:`error: ${(err as Error).name}: ${(err as Error).message}`
+  });
+  }
 }
 
 export async function updateRecipe(req: Request<{ id: string }>, res: Response) {
-  const recipe = await recipeService.updateRecipe(req.params.id, req.body);
-
-  res.status(201).json(recipe);
+  try {
+    const recipe = await recipeService.getRecipe(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    if (req.user?.id !== recipe.owner.toString()) {
+      return res.status(403).json({ message: "You are not authorized to update this recipe" });
+    }
+    const updatedRecipe = await recipeService.updateRecipe(req.params.id, req.body);
+    res.status(200).json({message:"Recipe Updated Successfully",data:updatedRecipe});
+  } catch (err) {res.status(500).json({ 
+    message: "Internal Server Error",
+    error:`error: ${(err as Error).name}: ${(err as Error).message}`
+  });
+  }
 }
 
 export async function deleteRecipe(req: Request<{ id: string }>, res: Response) {
-  const recipe = await recipeService.deleteRecipe(req.params.id);
-
-  res.status(201).json(recipe);
+  try {
+    const recipe = await recipeService.getRecipe(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    if (req.user?.id !== recipe.owner.toString()) {
+      return res.status(403).json({ message: "You are not authorized to delete this recipe" });
+    }
+    const deletedRecipe = await recipeService.deleteRecipe(req.params.id);
+    res.status(200).json({message:"Recipe Deleted Successfully",data:deletedRecipe});
+  } catch (err) {res.status(500).json({ 
+    message: "Internal Server Error" ,
+    error:`error: ${(err as Error).name}: ${(err as Error).message}`
+  });
+  }
 }

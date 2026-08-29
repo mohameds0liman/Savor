@@ -1,122 +1,101 @@
 import User from "../models/User"
-import{CreateUserDTO , UpdateUserDTO} from "../middlewares/validation/user.validation"
-
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
-
-
+import{CreateUserDTO , UpdateUserDTO , ChangePasswordDTO} from "../middlewares/validation/user.validation"
+import Session from "../models/Session"
+import {hashRefreshToken,comparePassword, hashPassword} from "../utils/hash"
+import {generateAccessToken,generateRefreshToken, getRefreshTokenExpirationDate} from "../utils/jwt"
 
 export async function createUser(data:CreateUserDTO,){
 
-    try{
-        const passwordHash=await bcrypt.hash(data.password,10)
-        const HashedData={...data,passwordHash}
+    const passwordHash=await hashPassword(data.password)
+    const HashedData={...data,passwordHash}
 
-        const CreatedUser= await User.create(HashedData)
-        let token=jwt.sign({id:CreatedUser._id},process.env.JWT_SECRET as string,{expiresIn:"1h"})
-        return {message:"User Created Successfully", user:CreatedUser, token}
-    }catch(err){
-        console.error(err)
+
+    const CreatedUser= await User.create(HashedData)
+    if(!CreatedUser){throw new Error("User Creation Failed")}
+
+    let accessToken=await generateAccessToken({id:CreatedUser._id.toString()})
+    let refreshToken=await generateRefreshToken({id:CreatedUser._id.toString()})
+    await Session.create({
+        user: CreatedUser._id,
+        refreshToken: hashRefreshToken(String(refreshToken)),
+        expiresAt: await getRefreshTokenExpirationDate(String(refreshToken)),
+    })
+    //later i can use this response to auto login the user after registration
+    return {message:"User Created Successfully", accessToken, refreshToken,
+        user:{
+            id:CreatedUser._id,
+            name:CreatedUser.name,
+            email:CreatedUser.email,
+            role:CreatedUser.role
+        }
     }
+    
 }
 
-export async function updateUser(id:string ,data:UpdateUserDTO){
-    try{
-        const UpdatedUser= await User.findByIdAndUpdate(id,data,{new:true ,runValidators:true})
-        return UpdatedUser
-    }catch(err){
-        console.error(err)
-    }
+export async function updateUser(userId:string ,data:UpdateUserDTO){
+    
+    const UpdatedUser= await User.findByIdAndUpdate(userId,data,{new:true ,runValidators:true})
+    if(!UpdatedUser){throw new Error("User Update Failed")}
+    return UpdatedUser
+}
+
+export async function changePassword(userId:string ,changes:ChangePasswordDTO){
+
+    const user= await User.findById(userId).select("+passwordHash")
+    const isMatch=await comparePassword(changes.oldPassword,user?.passwordHash || "")
+    if(!isMatch){throw new Error("Old password is incorrect")}
+
+    const passwordHash=await hashPassword(changes.newPassword)
+    const UpdatedUser= await User.findByIdAndUpdate(userId,{passwordHash},{new:true,runValidators:true})
+    if(!UpdatedUser){throw new Error("Password Change Failed")}
+    await Session.deleteMany({user:userId})
+    return UpdatedUser
 }
 
 //check if user exists by email in our database, if exists return the user else return null
 export async function getUserByEmail(email:string){
-    try{
-        const user= await User.findOne({email})
-        return user
-    }catch(err){
-        console.error(err)
-    }
+    const user= await User.findOne({email})
+    if(!user){return null}
+    return user
 }
-
-export async function LoginUser(email:string,password:string){
-    try{
-        //select the passwordHash field since we have set select:false in the schema
-        //we need it to be hidden in the response but we need it here to compare the password
-        const user= await User.findOne({email}).select("+passwordHash")
-        if(!user){
-            return null
-        }
-        const isPasswordValid=await bcrypt.compare(password,user.passwordHash)
-        if(!isPasswordValid){
-            return null
-        }
-        return {
-            message:"Login Successful",
-            user,
-            token:jwt.sign({email:user.email,id:user._id},process.env.JWT_SECRET as string,{expiresIn:"1h"})
-        }
-    }catch(err){
-        console.error(err)
-    }
-}
-
-
 
 
 export async function getUsers(){
-    try{
-        const users= await User.find()
-        return users
-    }catch(err){
-        console.error(err)
-    }
-
+    const users= await User.find()
+    if(!users){return null}
+    return users
 }
 
 
-export async function deleteUser(id:string){
-    try{
-        const DeletedUser= await User.findByIdAndDelete(id)
-        return DeletedUser
-    }catch(err){
-        console.error(err)
-    }
+export async function deleteUser(userId:string){
+    const DeletedUser= await User.findByIdAndDelete(userId)
+    if(!DeletedUser){throw new Error("User Deletion Failed")}
+    return DeletedUser
 }
-
-
-
 
 
 // User Favourite Recipes
 
-
 export async function getFavourites(userId:string){
-    try{
-        const favorites= await User.findById(userId).populate("favorites")
-        return favorites
-    }catch(err){
-        console.error(err)
-    }
+    const user= await User.findById(userId).populate("favorites").select("favorites")
+    if(!user){return null}
+    return user.favorites
+
 }
 
 
-export async function addFavourite(userId:string,recipeId:string){
-    try{
-        const user= await User.findByIdAndUpdate(
-            userId,{$addToSet: {favorites: recipeId}},{new:true,runValidators:true});
-        return user
-    }catch(err){
-        console.error(err)
-    }
+export async function addFavourite(userId:string,id:string){
+
+    const user= await User.findByIdAndUpdate(
+        userId,{$addToSet: {favorites: id}},{new:true,runValidators:true});
+    if(!user){throw new Error("Favourite Addition Failed")}
+    return user
 }
 
-export async function removeFavourite(userId:string,recipeId:string){
-    try{
-        const user= await User.findByIdAndUpdate(
-            userId,{$pull: {favorites: recipeId}},{new:true,runValidators:true});
-        return user
-    }catch(err){
-        console.error(err)
-    }
+export async function removeFavourite(userId:string,id:string){
+
+    const user= await User.findByIdAndUpdate(
+        userId,{$pull: {favorites: id}},{new:true,runValidators:true});
+    if(!user){throw new Error("Favourite Removal Failed")}
+    return user
 }

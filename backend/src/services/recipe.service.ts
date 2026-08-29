@@ -3,50 +3,41 @@ import { CreateRecipeDTO ,UpdateRecipeDTO } from "../middlewares/validation/reci
 
 
 export async function createRecipe(userId:string, data: CreateRecipeDTO) {
-  try{
-    const CreatedRecipe= await Recipe.create({...data,owner: userId})
-    return CreatedRecipe
-  }catch(err){
-    console.error(err);
-  }
+  const CreatedRecipe= await Recipe.create({...data,owner: userId})
+  if(!CreatedRecipe){throw new Error("Recipe Creation Failed")}
+  return CreatedRecipe
 }
 
 
 export async function getRecipes() {
-  try{
-    const recipes= await Recipe.find()
-    return recipes
-  }catch(err){
-    console.error(err);
-  }
+  const recipes= await Recipe.find()
+  if(!recipes){return null}
+  return recipes
+  
 }
 
 export async function getRecipe(id:string){
-  try{
-    const recipe= await Recipe.findById(id)
-    return recipe
-  }catch(err){
-    console.error(err);
-  }
+  const recipe= await Recipe.findById(id)
+  if(!recipe){return null}
+  return recipe
+}
+
+export async function getUserRecipes(userId:string){
+  const recipes= await Recipe.find({owner:userId})
+  if(!recipes){return null}
+  return recipes
 }
 
 export async function updateRecipe(id:string ,data:UpdateRecipeDTO){
-  try{
-    const UpdatedRecipe= await Recipe.findByIdAndUpdate(id,data,{new:true ,runValidators:true})
-    return UpdatedRecipe
-  }catch(err){
-    console.error(err);
-  }
+  const UpdatedRecipe= await Recipe.findByIdAndUpdate(id,data,{new:true ,runValidators:true})
+  if(!UpdatedRecipe){throw new Error("Recipe Update Failed")}
+  return UpdatedRecipe
 }
 
 export async function deleteRecipe(id:string){
-  try{
     const DeletedRecipe= await Recipe.findByIdAndDelete(id)
+    if(!DeletedRecipe){throw new Error("Recipe Deletion Failed")}
     return DeletedRecipe
-  }catch(err){
-    console.error(err);
-  }
 }
-
 
 

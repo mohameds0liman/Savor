@@ -17,11 +17,17 @@ export const CreateUserSchema = z.object({
     .max(100),
 });
 
-export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
+export const ChangePasswordSchema = z.object({
+  oldPassword: z.string().min(8, "Old password must be at least 8 characters").max(100),
+  newPassword: z.string().min(8, "New password must be at least 8 characters").max(100)
+});
 
+
+export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
 
 //update user schema is a partial of create user schema, meaning that all fields are optional
 
-export const UpdateUserSchema =CreateUserSchema.partial();
+export const UpdateUserSchema =CreateUserSchema.partial().pick({name:true});
 
 export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>;
+export type ChangePasswordDTO = z.infer<typeof ChangePasswordSchema>;
