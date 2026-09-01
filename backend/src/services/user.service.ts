@@ -66,6 +66,11 @@ export async function getUsers(){
     return users
 }
 
+export async function getUserById(userId:string){
+    const user= await User.findById(userId)
+    if(!user){return null}
+    return user
+}
 
 export async function deleteUser(userId:string){
     const DeletedUser= await User.findByIdAndDelete(userId)
@@ -77,9 +82,9 @@ export async function deleteUser(userId:string){
 // User Favourite Recipes
 
 export async function getFavourites(userId:string){
-    const user= await User.findById(userId).populate("favorites").select("favorites")
+    const user= await User.findById(userId).populate("favourites").select("favorites")
     if(!user){return null}
-    return user.favorites
+    return user.favourites
 
 }
 

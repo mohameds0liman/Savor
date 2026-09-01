@@ -36,7 +36,7 @@ const UserSchema = new Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    favorites: [
+    favourites: [
       {
         type: Schema.Types.ObjectId,
         ref: "Recipe",

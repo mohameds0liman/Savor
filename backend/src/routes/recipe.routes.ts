@@ -17,17 +17,17 @@ import {
 } from "../controllers/recipe.controller";
 
 const router = Router();
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
+const authLimiter = rateLimit({ windowMs: 0.5 * 60 * 1000, max: 10 });
 ///////////
-router.post("/recipe",authLimiter,auth,validate(CreateRecipeSchema),createRecipe);
+router.post("/recipe",authLimiter,auth,validate(CreateRecipeSchema),createRecipe);//
 
-router.patch("/recipe/:id",authLimiter,auth,validate(UpdateRecipeSchema),updateRecipe);
+router.patch("/recipe/:id",authLimiter,auth,validate(UpdateRecipeSchema),updateRecipe);//
 
 router.get("/recipe" , getRecipes);
 router.get("/recipe/my" ,authLimiter,auth,getUserRecipes);
-router.get("/recipe/:id" , getRecipe);
+router.get("/recipe/:id" , getRecipe);//
 
-router.delete("/recipe/:id",authLimiter,auth,deleteRecipe)
+router.delete("/recipe/:id",authLimiter,auth,deleteRecipe)//
 ///////////
 
 export default router;

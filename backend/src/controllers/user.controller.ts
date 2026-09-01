@@ -112,6 +112,25 @@ export async function getUsers(req:Request , res:Response) {
     }
 }
 
+export async function getUserById(req:Request , res:Response) {
+    const userId = req.user?.id
+    if(!userId){
+        return res.status(403).json({ message: "You are not authorized" });
+    }
+    try{
+        const user=await userService.getUserById(String(userId))
+        return res.status(200).json({
+            message:"User Fetched Successfully",
+            data:user
+        })
+    }catch(err){
+        return res.status(500).json({
+            message:"Internal Server Error",
+            error:`error: ${(err as Error).name}: ${(err as Error).message}`
+        })
+    }
+}
+
 // Delete a user
 export async function deleteUser(req:Request , res:Response) {
     const userId = req. user?.id

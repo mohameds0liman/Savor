@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -15,13 +16,11 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:3000/api/login", {
-        email,
-        password,
-      });
-
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userName", res.data.user.name);  //to later use insted of Login word to show the user he logged in
+      const res = await axios.post(`${API_URL}/api/login`,{email,password,});
+      
+      localStorage.setItem("token", res.data.data.accessToken);
+      localStorage.setItem("refreshToken", res.data.data.refreshToken);
+      localStorage.setItem("userName", res.data.data.user.name);  //to later use insted of Login word to show the user he logged in
       router.push("/");
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");

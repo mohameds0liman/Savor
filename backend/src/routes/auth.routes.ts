@@ -10,7 +10,9 @@ import {
 
 const router = Router();
 // stricter on auth endpoints (brute-force protection)
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 });
+//windowMs: 15 * 60 * 1000 — the time window in milliseconds.  --> 15 minutes
+//max: 10 — the maximum number of requests allowed within the time window.
+const authLimiter = rateLimit({ windowMs: 0.5 * 60 * 1000, max: 10 });
 
 router.post("/login", authLimiter, validate(LoginSchema), loginUser);
 router.post("/refresh", authLimiter, validate(RefreshSchema), refreshAccessToken);

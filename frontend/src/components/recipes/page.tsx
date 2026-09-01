@@ -1,5 +1,6 @@
 "use client";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { HiHeart } from "react-icons/hi2";
 
@@ -15,9 +16,9 @@ function RecipeList() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
 
   useEffect(()=>{
-    axios.get("http://localhost:3000/api/recipes")
+    axios.get(`${API_URL}/api/recipe`)
     .then(response=>{
-      setRecipes(response.data)
+      setRecipes(response.data.data)
     })
   },[])
 ////////////////////////////////////////////////////

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState,useEffect } from "react";
 import { usePathname ,useRouter } from "next/navigation";
+import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 function Navbar() {
   const pathname = usePathname();
@@ -29,13 +31,17 @@ function Navbar() {
   }, []);
 
   function handleLogout() {
+    axios.post(`${API_URL}/api/logout`,{
+      refreshToken:localStorage.getItem("refreshToken")
+    }).catch(()=>{});
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("userName");
     setUserName(null);
     router.push("/");
   }
   // this for Protect the route need login to redirect to login page to access them
-  const PROTECTED_ROUTES = ["/favourites", "/recipes"];
+  const PROTECTED_ROUTES = ["/favourites", "/my-recipes"];
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (PROTECTED_ROUTES.includes(href) && !localStorage.getItem("token")) {
@@ -68,9 +74,9 @@ function Navbar() {
         </Link>
 
         <Link 
-          href="/recipes"
-          onClick={(e) => handleNavClick(e, "/recipes")}
-          className={selectionStyle("/recipes")}>
+          href="/my-recipes"
+          onClick={(e) => handleNavClick(e, "/my-recipes")}
+          className={selectionStyle("/my-recipes")}>
           My Recipes
         </Link>
 
