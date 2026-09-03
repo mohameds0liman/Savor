@@ -3,6 +3,7 @@ import{CreateUserDTO , UpdateUserDTO , ChangePasswordDTO} from "../middlewares/v
 import Session from "../models/Session"
 import {hashRefreshToken,comparePassword, hashPassword} from "../utils/hash"
 import {generateAccessToken,generateRefreshToken, getRefreshTokenExpirationDate} from "../utils/jwt"
+import Recipe from "../models/Recipe"
 
 export async function createUser(data:CreateUserDTO,){
 
@@ -82,17 +83,16 @@ export async function deleteUser(userId:string){
 // User Favourite Recipes
 
 export async function getFavourites(userId:string){
-    const user= await User.findById(userId).populate("favourites").select("favorites")
+    const user= await User.findById(userId).populate("favourites").select("favourites")
     if(!user){return null}
     return user.favourites
 
 }
 
-
 export async function addFavourite(userId:string,id:string){
 
     const user= await User.findByIdAndUpdate(
-        userId,{$addToSet: {favorites: id}},{new:true,runValidators:true});
+        userId,{$addToSet: {favourites: id}},{new:true,runValidators:true});
     if(!user){throw new Error("Favourite Addition Failed")}
     return user
 }
@@ -100,7 +100,7 @@ export async function addFavourite(userId:string,id:string){
 export async function removeFavourite(userId:string,id:string){
 
     const user= await User.findByIdAndUpdate(
-        userId,{$pull: {favorites: id}},{new:true,runValidators:true});
+        userId,{$pull: {favourites: id}},{new:true,runValidators:true});
     if(!user){throw new Error("Favourite Removal Failed")}
     return user
 }

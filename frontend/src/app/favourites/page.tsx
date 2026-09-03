@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar/page";
 import { useState, useEffect } from "react";
 import apiClient from "@/lib/axios";
 import { HiHeart } from "react-icons/hi2";
+import {useRouter} from "next/navigation"
 
 type Recipe = {
   _id: string;
@@ -15,13 +16,30 @@ type Recipe = {
 function Favourites() {
   const [favourites, setFavourites] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const router = useRouter();
   useEffect(() => {
     apiClient
       .get("/user/favourites")
       .then((response) => setFavourites(response.data.data))
+      .catch(err => {
+          if (err.response?.status === 401) {
+            localStorage.removeItem("token")
+            localStorage.removeItem("userName")
+            router.push("/")
+          }
+        })
       .finally(() => setLoading(false));
   }, []);
+
+  const removeFavourite = (id: string) => {
+  apiClient
+    .delete(`/user/favourites/${id}`)
+    .then(() => {
+      setFavourites((prev) => prev.filter((fav) => fav._id !== id));
+    })
+    .catch((err) => console.error("Failed to remove favourite", err));
+  };
+
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -47,7 +65,9 @@ function Favourites() {
                   {fav.brief || fav.description}
                 </p>
                 <div className="icons">
-                  <HiHeart className="text-orange-500" />
+                  <button type="button" onClick={() => removeFavourite(fav._id)} aria-label="Remove favourite">
+                    <HiHeart className="text-orange-500" />
+                  </button>
                 </div>
               </div>
             ))}
