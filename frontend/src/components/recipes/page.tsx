@@ -1,139 +1,131 @@
-// "use client";
-// import axios from "axios";
-// import { API_URL } from "@/lib/api";
-// import { useEffect, useState } from "react";
-// import { HiHeart } from "react-icons/hi2";
-// import apiClient from "@/lib/axios";
-
-// type Recipe= {
-//   _id: number;
-//   name: string;
-//   description:string;
-//   image:string;
-// }
-
-
-// function RecipeList() {
-//   const [recipes, setRecipes] = useState<Recipe[]>([]);
-
-//   useEffect(()=>{
-//     axios.get(`${API_URL}/api/recipe`)
-//     .then(response=>{
-//       setRecipes(response.data.data)
-//     })
-//   },[])
-//   // const addFavourite = (id: string) => {
-//   //   apiClient.post(`/user/favourites/${id}`).catch((err) => {
-//   //     console.error("Failed to add favourite", err);
-//   //   });
-//   // };
-// ////////////////////////////////////////////////////
-//   return (
-//     <div className="grid grid-cols-3 gap-6" id="recipe-card">
-//       {recipes?.map((recipe) => (
-//         <div key={recipe?._id} className="recipe-card flex flex-col items-center">
-//             <div
-//             className="border p-30 rounded-xl bg-cover bg-center shadow-xl"
-//             style={{ backgroundImage: `url(${recipe?.image})`}}>
-                
-//             </div>
-//             <h2 className="mt-4 text-2xl font-bold text-gray-800 tracking-wide">
-//                 {recipe?.name}</h2>
-//             <p className="mt-1 text-sm text-gray-500">
-//                 {recipe?.description}
-//             </p>
-//             <div className="icons">
-//               <HiHeart />
-//             </div>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
-// export default RecipeList
 "use client";
-import axios from "axios";
-import { API_URL } from "@/lib/api";
-import { useEffect, useState } from "react";
-import { HiHeart, HiOutlineHeart } from "react-icons/hi2";
-import apiClient from "@/lib/axios";
 
-type Recipe = {
-  _id: string;
-  name: string;
-  description: string;
-  image: string;
-};
+import { useMemo, useState } from "react";
+import { HiOutlineMagnifyingGlass } from "react-icons/hi2";
+import { useFavourites } from "@/hooks/useFavourites";
+import { useRecipes } from "@/hooks/useRecipes";
+import RecipeCard from "@/components/recipe/RecipeCard";
+import Loader from "@/components/common/Loader";
+import EmptyState from "@/components/common/EmptyState";
+import ErrorMessage from "@/components/common/ErrorMessage";
+import type { Difficulty } from "@/types/recipe";
 
+// Client-side-only search/filter over the single GET /api/recipe response —
+// the backend has no query-param support for search/category/difficulty/
+// pagination (memory.md §2.9 #10). See DESIGN.md "Interactive Filter Chips".
 function RecipeList() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
+  const { recipes, loading, error } = useRecipes();
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [difficulty, setDifficulty] = useState<Difficulty | "">("");
 
-  useEffect(() => {
-    axios.get(`${API_URL}/api/recipe`).then((response) => {
-      setRecipes(response.data.data);
+  const { favouriteIds, toggleFavourite, isAuthenticated } = useFavourites();
+
+  const categories = useMemo(
+    () => Array.from(new Set(recipes.map((r) => r.category))).sort(),
+    [recipes]
+  );
+
+  const filteredRecipes = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return recipes.filter((r) => {
+      const matchesSearch =
+        q === "" ||
+        r.name.toLowerCase().includes(q) ||
+        r.tags.some((tag) => tag.toLowerCase().includes(q));
+      const matchesCategory = category === "" || r.category === category;
+      const matchesDifficulty = difficulty === "" || r.difficulty === difficulty;
+      return matchesSearch && matchesCategory && matchesDifficulty;
     });
-
-    if (localStorage.getItem("token")) {
-      apiClient
-        .get("/user/favourites")
-        .then((response) => {
-          const ids = (response.data.data as Recipe[]).map((fav) => fav._id);
-          setFavouriteIds(new Set(ids));
-        })
-        .catch(() => {});
-    }
-  }, []);
-
-  const toggleFavourite = (id: string) => {
-    const isFavourite = favouriteIds.has(id);
-    const request = isFavourite
-      ? apiClient.delete(`/user/favourites/${id}`)
-      : apiClient.post(`/user/favourites/${id}`);
-
-    request
-      .then(() => {
-        setFavouriteIds((prev) => {
-          const next = new Set(prev);
-          if (isFavourite) next.delete(id);
-          else next.add(id);
-          return next;
-        });
-      })
-      .catch((err) => {
-        console.error("Failed to update favourite", err);
-      });
-  };
+  }, [recipes, search, category, difficulty]);
 
   return (
-    <div className="grid grid-cols-3 gap-6" id="recipe-card">
-      {recipes?.map((recipe) => (
-        <div key={recipe?._id} className="recipe-card flex flex-col items-center">
-          <div
-            className="border p-30 rounded-xl bg-cover bg-center shadow-xl"
-            style={{ backgroundImage: `url(${recipe?.image})` }}
-          ></div>
-          <h2 className="mt-4 text-2xl font-bold text-gray-800 tracking-wide">
-            {recipe?.name}
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">{recipe?.description}</p>
-          <div className="icons">
-            <button
-              type="button"
-              onClick={() => toggleFavourite(recipe._id)}
-              aria-label="Toggle favourite"
-            >
-              {favouriteIds.has(recipe._id) ? (
-                <HiHeart className="text-orange-500" />
-              ) : (
-                <HiOutlineHeart />
-              )}
-            </button>
-          </div>
+    <div id="recipes" className="mx-auto max-w-7xl px-6 py-14 sm:px-10">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="font-display text-2xl font-semibold text-ink">All Recipes</h2>
+        <div className="relative sm:w-72">
+          <HiOutlineMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <input
+            type="text"
+            placeholder="Search recipes, tags…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-linen-border bg-surface-container-lowest py-2.5 pl-9 pr-4 font-body text-sm text-ink placeholder:text-ink-muted/70 outline-none transition-colors focus:border-primary focus:ring-3 focus:ring-primary/20"
+          />
         </div>
-      ))}
+      </div>
+
+      {/* Filter chips */}
+      <div className="mb-8 flex flex-wrap items-center gap-2">
+        <FilterChip label="All Recipes" active={category === ""} onClick={() => setCategory("")} />
+        {categories.map((c) => (
+          <FilterChip
+            key={c}
+            label={c}
+            active={category === c}
+            onClick={() => setCategory((prev) => (prev === c ? "" : c))}
+          />
+        ))}
+        <span className="mx-1 hidden h-5 w-px bg-linen-border sm:inline-block" />
+        {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+          <FilterChip
+            key={d}
+            label={d.charAt(0).toUpperCase() + d.slice(1)}
+            active={difficulty === d}
+            onClick={() => setDifficulty((prev) => (prev === d ? "" : d))}
+          />
+        ))}
+      </div>
+
+      {loading ? (
+        <Loader label="Loading recipes…" />
+      ) : error ? (
+        <ErrorMessage message={error} />
+      ) : recipes.length === 0 ? (
+        <EmptyState title="No recipes yet" description="Be the first to add a recipe!" />
+      ) : filteredRecipes.length === 0 ? (
+        <EmptyState
+          title="No recipes match your search"
+          description="Try a different search term or clear the filters."
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredRecipes.map((recipe) => (
+            <RecipeCard
+              key={recipe._id}
+              recipe={recipe}
+              isFavourite={favouriteIds.has(recipe._id)}
+              isAuthenticated={isAuthenticated}
+              onToggleFavourite={toggleFavourite}
+            />
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3.5 py-1.5 font-body text-sm font-medium transition-colors ${
+        active
+          ? "border-primary bg-primary text-on-primary"
+          : "border-linen-border bg-surface-container-lowest text-ink-muted hover:border-primary/40 hover:text-ink"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

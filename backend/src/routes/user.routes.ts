@@ -1,28 +1,46 @@
-import {Router} from "express"
+import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { validate } from "../middlewares/validate.middleware";
-import {auth} from "../middlewares/auth.middleware"
+import { auth } from "../middlewares/auth.middleware";
 
-import {CreateUserSchema,UpdateUserSchema,ChangePasswordSchema} from "../middlewares/validation/user.validation"
 import {
-createUser, updateUser,changePassword, getUsers,getUserById, deleteUser,getFavourites,addFavourite,removeFavourite
-} 
-from "../controllers/user.controller"
+  CreateUserSchema,
+  UpdateUserSchema,
+  ChangePasswordSchema,
+} from "../middlewares/validation/user.validation";
+import {
+  createUser,
+  updateUser,
+  changePassword,
+  getUsers,
+  getUserById,
+  deleteUser,
+  getFavourites,
+  addFavourite,
+  removeFavourite,
+} from "../controllers/user.controller";
 
+const router = Router();
 
+// Rate limiter for user creation / password change (brute-force prevention)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: { message: "Too many attempts. Please try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-const router=Router()
+router.post("/signup", authLimiter, validate(CreateUserSchema), createUser);
+router.patch("/user", auth, validate(UpdateUserSchema), updateUser);
+router.get("/user/me", auth, getUserById);
+router.get("/user", auth, getUsers);
+router.delete("/user", auth, deleteUser);
+router.put("/user/password", authLimiter, auth, validate(ChangePasswordSchema), changePassword);
 
-const authLimiter = rateLimit({ windowMs: 0.5 * 60 * 1000, max: 10 });
+// Favourites routes — no rate limiter to allow normal UI interactions
+router.get("/user/favourites", auth, getFavourites);
+router.post("/user/favourites/:id", auth, addFavourite);
+router.delete("/user/favourites/:id", auth, removeFavourite);
 
-router.post("/signup",validate(CreateUserSchema),createUser)//
-router.patch("/user",authLimiter,auth,validate(UpdateUserSchema),updateUser)//
-// router.patch("/users/:id",authLimiter,auth,validate(UpdateUserSchema),updateUser)
-router.get("/user/me", authLimiter, auth, getUserById);
-router.get("/user",authLimiter,auth,getUsers)//
-router.delete("/user",authLimiter,auth,deleteUser)//
-router.put("/user/password",authLimiter,auth,validate(ChangePasswordSchema),changePassword)//
-router.get("/user/favourites",authLimiter,auth,getFavourites)
-router.post("/user/favourites/:id",authLimiter,auth,addFavourite)//
-router.delete("/user/favourites/:id",authLimiter,auth,removeFavourite)//
-export default router
+export default router;

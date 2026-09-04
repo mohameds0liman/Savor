@@ -1,26 +1,129 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * "Savor" — Warm Culinary Editorial design system (see DESIGN.md).
+ * Color tokens mirror the exact Material-3-style palette in DESIGN.md's
+ * frontmatter verbatim (treated as ground truth over the prose's rounded
+ * hex approximations).
+ */
+@theme {
+  --color-surface: #fff8f6;
+  --color-surface-dim: #e4d8d2;
+  --color-surface-bright: #fff8f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fef1ec;
+  --color-surface-container: #f8ebe6;
+  --color-surface-container-high: #f2e6e0;
+  --color-surface-container-highest: #ece0db;
+  --color-on-surface: #201a17;
+  --color-on-surface-variant: #59413b;
+  --color-inverse-surface: #362f2c;
+  --color-inverse-on-surface: #fbeee9;
+  --color-outline: #8d716a;
+  --color-outline-variant: #e1bfb7;
+  --color-surface-tint: #ac3311;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #a9310f;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #cb4926;
+  --color-on-primary-container: #fffbff;
+  --color-inverse-primary: #ffb4a1;
+
+  --color-secondary: #825500;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #feba54;
+  --color-on-secondary-container: #724a00;
+
+  --color-tertiary: #3b6546;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #537e5d;
+  --color-on-tertiary-container: #f6fff4;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-primary-fixed: #ffdbd1;
+  --color-primary-fixed-dim: #ffb4a1;
+  --color-on-primary-fixed: #3c0800;
+  --color-on-primary-fixed-variant: #881f00;
+  --color-secondary-fixed: #ffddb3;
+  --color-secondary-fixed-dim: #feba54;
+  --color-on-secondary-fixed: #291800;
+  --color-on-secondary-fixed-variant: #633f00;
+  --color-tertiary-fixed: #beeec6;
+  --color-tertiary-fixed-dim: #a3d2ab;
+  --color-on-tertiary-fixed: #00210d;
+  --color-on-tertiary-fixed-variant: #254f32;
+
+  --color-background: #fff8f6;
+  --color-on-background: #201a17;
+  --color-surface-variant: #ece0db;
+
+  /* Simple aliases used throughout components for readability. */
+  --color-ink: #221c19;
+  --color-ink-muted: #6e645e;
+  --color-linen: #fdfbf7;
+  --color-linen-border: #ebe5df;
+
+  --font-display: var(--font-playfair-display), Georgia, serif;
+  --font-body: var(--font-plus-jakarta-sans), Arial, sans-serif;
+
+  --shadow-card: 0 4px 20px -2px rgba(34, 28, 25, 0.05), 0 2px 6px -1px rgba(34, 28, 25, 0.03);
+  --shadow-card-hover: 0 12px 28px -4px rgba(34, 28, 25, 0.08), 0 4px 10px -2px rgba(34, 28, 25, 0.04);
+  --shadow-nav: 0 1px 0 0 var(--color-linen-border);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* This app intentionally does not ship a dark theme yet — DESIGN.md
+       defines only the warm-light palette. Keep the same surface so no
+       unstyled dark-mode flash occurs on OS dark-mode users. */
+    --color-background: #fff8f6;
+    --color-on-background: #201a17;
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--color-primary-fixed);
+  color: var(--color-on-primary-fixed);
+}
+
+/* Utility for the frosted-glass sticky navigation described in DESIGN.md. */
+.glass-linen {
+  background: rgba(253, 251, 247, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

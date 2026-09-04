@@ -1,68 +1,102 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import axios from "axios";
-import { API_URL } from "@/lib/api";
+import { AxiosError } from "axios";
+import apiClient from "@/lib/axios";
+import { useAuth } from "@/context/AuthContext";
+import { Input } from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import ErrorMessage from "@/components/common/ErrorMessage";
+import AuthLayout from "@/components/auth/AuthLayout";
+import type { AuthResponse } from "@/types/auth";
+import type { ApiResponse } from "@/types/api";
 
-function Login() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const router = useRouter();
+  const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const infoMessage = searchParams.get("message");
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
 
     try {
-      const res = await axios.post(`${API_URL}/api/login`,{email,password,});
-      
-      localStorage.setItem("token", res.data.data.accessToken);
-      localStorage.setItem("refreshToken", res.data.data.refreshToken);
-      localStorage.setItem("userName", res.data.data.user.name);  //to later use insted of Login word to show the user he logged in
+      const res = await apiClient.post<ApiResponse<AuthResponse>>("/login", {
+        email,
+        password,
+      });
+      login(res.data.data);
       router.push("/");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ message?: string }>;
+      setError(axiosErr.response?.data?.message ?? "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white text-black">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-6 text-center text-3xl font-bold">Login</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-orange-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-orange-400"
-          />
-          {error && <p className="text-center text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            className="rounded-lg bg-orange-400 px-4 py-2 text-white transition-colors duration-300 hover:bg-orange-500"
-          >
-            Login
-          </button>
-        </form>
-        <p className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-orange-500 hover:underline">
-            Register
-          </Link>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to access your saved recipe box and personal kitchen."
+    >
+      {infoMessage && (
+        <p className="mb-6 rounded-lg border border-primary-container/40 bg-primary-fixed/40 px-4 py-3 font-body text-sm text-on-primary-fixed-variant">
+          {infoMessage}
         </p>
-      </div>
+      )}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <Input
+          id="email"
+          label="Email address"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Input
+          id="password"
+          label="Password"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {error && <ErrorMessage message={error} />}
+        <Button type="submit" variant="primary" isLoading={isSubmitting} className="mt-2 w-full">
+          Sign In
+        </Button>
+      </form>
+      <p className="mt-6 text-center font-body text-sm text-ink-muted">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-semibold text-primary hover:underline">
+          Create an account
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
+
+function Login() {
+  return (
+    <main className="min-h-screen bg-surface">
+      {/* useSearchParams requires a Suspense boundary during static export
+          (Next.js App Router constraint) — see the ?message= redirect from
+          Profile's change-password flow (memory.md M4). */}
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </main>
   );
 }

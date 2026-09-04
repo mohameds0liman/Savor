@@ -13,7 +13,7 @@ const requiredEnvVars = [
   "MONGODB_URI",          // MongoDB connection string
   "PORT",                 // Server port
   "NODE_ENV",             // "development" | "production" | "test"
-  "FRONTEND_URL",         // CORS origin (e.g., "http://localhost:3000")
+  "FRONTEND_URL",         // CORS origin (e.g., "http://localhost:4000")
 ] as const;
 
 // Validate all required vars exist

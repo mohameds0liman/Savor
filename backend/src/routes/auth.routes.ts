@@ -9,13 +9,18 @@ import {
 } from "../controllers/auth.controller";
 
 const router = Router();
-// stricter on auth endpoints (brute-force protection)
-//windowMs: 15 * 60 * 1000 — the time window in milliseconds.  --> 15 minutes
-//max: 10 — the maximum number of requests allowed within the time window.
-const authLimiter = rateLimit({ windowMs: 0.5 * 60 * 1000, max: 10 });
+
+// Strict rate limiter for authentication endpoints to prevent brute-force attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // Allow 15 attempts per 15 minutes
+  message: { message: "Too many authentication attempts. Please try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.post("/login", authLimiter, validate(LoginSchema), loginUser);
-router.post("/refresh", authLimiter, validate(RefreshSchema), refreshAccessToken);
+router.post("/refresh", validate(RefreshSchema), refreshAccessToken);
 router.post("/logout", logoutUser);
 
 export default router;
