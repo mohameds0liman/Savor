@@ -1,13 +1,12 @@
+import { env } from "../config/env.ts";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import { SignOptions } from "jsonwebtoken";
 
-dotenv.config();
+const ACCESS_SECRET = env.JWT_ACCESS_SECRET as string;
+const REFRESH_SECRET = env.JWT_REFRESH_SECRET as string;
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
-
-const ACCESS_EXPIRES_IN = "1h";
-const REFRESH_EXPIRES_IN = "30d";
+const ACCESS_EXPIRES_IN = env.JWT_ACCESS_EXPIRES_IN as SignOptions["expiresIn"];
+const REFRESH_EXPIRES_IN = env.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"];
 
 export interface TokenPayload {
   id: string;

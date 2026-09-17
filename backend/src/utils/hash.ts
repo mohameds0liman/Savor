@@ -1,3 +1,4 @@
+import { env } from "../config/env.ts";
 import bcrypt from 'bcrypt';
 import { createHash } from "crypto";
 
@@ -7,7 +8,7 @@ export const hashRefreshToken = (token: string) =>
 );
 
 export async function hashPassword(password:string){
-    const passwordHash = await bcrypt.hash(password,10)
+    const passwordHash = await bcrypt.hash(password,env.BCRYPT_SALT_ROUNDS)
     return passwordHash
 }
 

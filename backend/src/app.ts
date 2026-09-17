@@ -1,4 +1,5 @@
 import express from "express";
+import { env } from "./config/env.ts";
 import cors from "cors"
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -18,14 +19,11 @@ app.use(express.json());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.startsWith("http://localhost:") ||
-        origin.startsWith("http://127.0.0.1:")
-      ) {
+     // No Origin header = non-browser client (curl, Postman, mobile app) → allow
+      if (!origin || origin === env.FRONTEND_URL) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(new Error(`CORS blocked: origin ${origin} not allowed`));
       }
     },
     credentials: true,

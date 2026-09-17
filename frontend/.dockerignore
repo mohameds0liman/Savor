@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log*
+*.log
+
+.env
+.env.local
+
+.next
+out
+coverage
+
+.git
+.vscode
+.DS_Store
+Thumbs.db
+tsconfig.tsbuildinfo
