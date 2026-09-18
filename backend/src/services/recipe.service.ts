@@ -19,6 +19,8 @@ export async function getRecipes() {
 export async function getRecipe(id:string){
   const recipe= await Recipe.findById(id)
   if(!recipe){return null}
+  recipe.views=recipe.views+1
+  await recipe.save()
   return recipe
 }
 
