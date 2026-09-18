@@ -1,4 +1,4 @@
-# Product Requirements Document — Recipe MERN Frontend
+# Product Requirements Document — Savor Frontend
 
 **Scope:** Frontend only (Next.js App Router app in `frontend/`). The backend (Express/MongoDB API in `backend/`) is already implemented and is treated here as a fixed contract. This PRD documents what currently exists in the frontend, what is broken/partial, what is completely missing, and what needs to be built to reach full parity with the backend's capabilities.
 

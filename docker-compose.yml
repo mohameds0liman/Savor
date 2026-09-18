@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    image: recipe-backend
+    image: savor-backend
     ports:
       - "3000:3000"
     env_file:
@@ -13,7 +13,7 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: http://localhost:3000
-    image: recipe-frontend
+    image: savor-frontend
     ports:
       - "4000:4000"
     depends_on:

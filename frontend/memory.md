@@ -2,11 +2,11 @@
 
 **Purpose:** This file is a complete substitute for re-reading the project. Any agent picking up work here should be able to read only this file (plus `PRD.md`, `Design.md`, `tasks.md` in this same folder) and have full context — no need to re-explore `backend/` or `frontend/` from scratch. It documents exact file paths, exact schemas, exact bugs, exact quirks, and exact current implementation state as of the last full audit.
 
-**Project root:** `recipe_mern/` (a MERN stack app: MongoDB + Express + React/Next.js), with two independent sub-projects:
-- `recipe_mern/backend/` — Express + TypeScript + Mongoose API (fully implemented)
-- `recipe_mern/frontend/` — Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 (partially implemented)
+**Project root:** `Savor/` (a MERN stack app: MongoDB + Express + React/Next.js), with two independent sub-projects:
+- `Savor/backend/` — Express + TypeScript + Mongoose API (fully implemented)
+- `Savor/frontend/` — Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 (partially implemented)
 
-**Companion docs (already written, in `recipe_mern/frontend/`):**
+**Companion docs (already written, in `Savor/frontend/`):**
 - `PRD.md` — frontend requirements: what's done/partial/missing, feature specs, backend constraints, acceptance criteria
 - `Design.md` — full design system: tokens, components, page-by-page layout specs, backend-driven constraints, explicit out-of-scope list
 - `tasks.md` — milestone plan (M0–M7) implementing the PRD with a testing checklist per milestone
@@ -18,7 +18,7 @@ This `memory.md` is the **factual ground-truth reference** underlying all three 
 ## 1. Repository Layout
 
 ```
-recipe_mern/
+Savor/
 ├── .gitignore
 ├── .vscode/
 ├── node_modules/               (root-level, likely unused/legacy)
