@@ -81,18 +81,18 @@ export async function updateRecipe(req: Request<{ id: string }>, res: Response) 
   }                                                                                                                                                      
 }    
 
-    export async function addRating(req: Request<{ id: string }>, res: Response) {                                                                           
-      try {                                                                                                                                                  
-        const { rating } = req.body;                                                                                                                         
-        const updatedRecipe = await recipeService.addRating(req.params.id, rating);                                                                          
-        res.status(200).json({ message: "Recipe Rated Successfully", data: updatedRecipe });                                                                 
-      } catch (err) {                                                                                                                                        
-        res.status(500).json({                                                                                                                               
-          message: "Internal Server Error",                                                                                                                  
-          error: `error: ${(err as Error).name}: ${(err as Error).message}`                                                                                  
-        });                                                                                                                                                  
-      }                                                                                                                                                      
-    }   
+export async function addRating(req: Request<{ id: string }>, res: Response) {                                                                           
+  try {                                                                                                                                                  
+    const { rating } = req.body;                                                                                                                         
+    const updatedRecipe = await recipeService.addRating(req.params.id, rating);                                                                          
+    res.status(200).json({ message: "Recipe Rated Successfully", data: updatedRecipe });                                                                 
+  } catch (err) {                                                                                                                                        
+    res.status(500).json({                                                                                                                               
+      message: "Internal Server Error",                                                                                                                  
+      error: `error: ${(err as Error).name}: ${(err as Error).message}`                                                                                  
+    });                                                                                                                                                  
+  }                                                                                                                                                      
+}   
 
     
 export async function deleteRecipe(req: Request<{ id: string }>, res: Response) {
