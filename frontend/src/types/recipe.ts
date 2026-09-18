@@ -9,9 +9,14 @@ export type Ingredient = {
   unit?: string;
 };
 
+export type RecipeOwner = {
+  _id: string;
+  name: string;
+  image?: string | null;
+};
+
 // Full Recipe document as returned by the backend.
-// NOTE: `owner` is never populated by any read endpoint (memory.md bug #8) —
-// it's always a raw ObjectId string, never an author name/object.
+// `owner` is populated with { _id, name, image } by read endpoints.
 export type Recipe = {
   _id: string;
   name: string;
@@ -26,7 +31,7 @@ export type Recipe = {
   difficulty: Difficulty;
   category: string;
   tags: string[];
-  owner: string;
+  owner: string | RecipeOwner;
   rating: number;
   ratingsCount: number;
   views: number;

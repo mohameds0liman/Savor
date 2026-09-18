@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Savor — Handcrafted Recipes",
   description:
     "Discover, save, and share chef-tested recipes made with warmth and seasonal ingredients.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

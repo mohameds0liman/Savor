@@ -29,12 +29,14 @@ function Profile() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Edit name state
-  const [editingName, setEditingName] = useState(false);
+  // Edit profile state
+  const [editingProfile, setEditingProfile] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [imageInput, setImageInput] = useState("");
   const [nameError, setNameError] = useState("");
-  const [nameServerError, setNameServerError] = useState("");
-  const [isSavingName, setIsSavingName] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const [profileServerError, setProfileServerError] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Change password state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -61,34 +63,46 @@ function Profile() {
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  function startEditingName() {
+  function startEditingProfile() {
     setNameInput(user?.name ?? "");
+    setImageInput(user?.image ?? "");
     setNameError("");
-    setNameServerError("");
-    setEditingName(true);
+    setImageError("");
+    setProfileServerError("");
+    setEditingProfile(true);
   }
 
-  async function handleSaveName(e: FormEvent<HTMLFormElement>) {
+  async function handleSaveProfile(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setNameServerError("");
-    const trimmed = nameInput.trim();
-    if (trimmed.length < 2 || trimmed.length > 50) {
+    setProfileServerError("");
+    const trimmedName = nameInput.trim();
+    if (trimmedName.length < 2 || trimmedName.length > 50) {
       setNameError("Name must be between 2 and 50 characters.");
       return;
     }
+    const trimmedImage = imageInput.trim();
+    if (trimmedImage && !trimmedImage.startsWith("http://") && !trimmedImage.startsWith("https://")) {
+      setImageError("Profile image must be a valid HTTP or HTTPS URL.");
+      return;
+    }
     setNameError("");
-    setIsSavingName(true);
+    setImageError("");
+    setIsSavingProfile(true);
     try {
-      const res = await apiClient.patch<ApiResponse<User>>("/user", { name: trimmed });
+      const payload: { name: string; image?: string | null } = {
+        name: trimmedName,
+        image: trimmedImage || null,
+      };
+      const res = await apiClient.patch<ApiResponse<User>>("/user", payload);
       setUser(res.data.data);
-      updateUser({ name: res.data.data.name });
-      showToast("Name updated", "success");
-      setEditingName(false);
+      updateUser({ name: res.data.data.name, image: res.data.data.image });
+      showToast("Profile updated successfully", "success");
+      setEditingProfile(false);
     } catch (err) {
       const axiosErr = err as AxiosError<{ message?: string }>;
-      setNameServerError(axiosErr.response?.data?.message ?? "Something went wrong");
+      setProfileServerError(axiosErr.response?.data?.message ?? "Something went wrong");
     } finally {
-      setIsSavingName(false);
+      setIsSavingProfile(false);
     }
   }
 
@@ -168,21 +182,31 @@ function Profile() {
               <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
                 <Avatar name={user.name} image={user.image} size={88} />
                 <div className="flex-1">
-                  {editingName ? (
-                    <form onSubmit={handleSaveName} className="flex flex-col gap-3">
+                  {editingProfile ? (
+                    <form onSubmit={handleSaveProfile} className="flex flex-col gap-3">
                       <Input
                         id="editName"
+                        label="Name"
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
                         error={nameError}
                         autoFocus
+                        required
                       />
-                      {nameServerError && <ErrorMessage message={nameServerError} />}
-                      <div className="flex gap-2">
-                        <Button type="submit" variant="primary" isLoading={isSavingName}>
-                          Save Name
+                      <Input
+                        id="editImage"
+                        label="Avatar Image URL (optional)"
+                        placeholder="https://images.unsplash.com/photo-..."
+                        value={imageInput}
+                        onChange={(e) => setImageInput(e.target.value)}
+                        error={imageError}
+                      />
+                      {profileServerError && <ErrorMessage message={profileServerError} />}
+                      <div className="flex gap-2 pt-1">
+                        <Button type="submit" variant="primary" isLoading={isSavingProfile}>
+                          Save Profile
                         </Button>
-                        <Button type="button" variant="secondary" onClick={() => setEditingName(false)}>
+                        <Button type="button" variant="secondary" onClick={() => setEditingProfile(false)}>
                           Cancel
                         </Button>
                       </div>
@@ -193,11 +217,11 @@ function Profile() {
                         <h2 className="font-display text-2xl font-bold text-ink">{user.name}</h2>
                         <button
                           type="button"
-                          aria-label="Edit name"
-                          onClick={startEditingName}
+                          aria-label="Edit profile"
+                          onClick={startEditingProfile}
                           className="font-body text-xs font-semibold uppercase text-primary hover:underline"
                         >
-                          Edit
+                          Edit Profile
                         </button>
                       </div>
                       <p className="mt-1 font-body text-sm text-ink-muted">{user.email}</p>

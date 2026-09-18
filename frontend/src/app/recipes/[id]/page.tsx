@@ -9,11 +9,14 @@ import {
   HiOutlineUserGroup,
   HiOutlineEye,
   HiOutlineStar,
+  HiStar,
   HiHeart,
   HiOutlineHeart,
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlineCheck,
+  HiOutlineShare,
+  HiOutlinePrinter,
 } from "react-icons/hi2";
 import Navbar from "@/components/navbar/page";
 import Footer from "@/components/footer/page";
@@ -23,6 +26,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Modal from "@/components/ui/Modal";
 import DifficultyBadge from "@/components/ui/DifficultyBadge";
+import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/hooks/useFavourites";
 import { useToast } from "@/components/common/Toast";
@@ -43,6 +47,7 @@ function RecipeDetail() {
   const [imageError, setImageError] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRating, setIsRating] = useState(false);
 
   // Interactive ingredient checklist state (client local UI state only)
   const [checkedIngredients, setCheckedIngredients] = useState<Record<number, boolean>>({});
@@ -83,11 +88,54 @@ function RecipeDetail() {
       });
   }
 
+  function handleShare() {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({
+        title: recipe?.name,
+        text: recipe?.brief,
+        url: window.location.href,
+      }).catch(() => {});
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      showToast("Recipe link copied to clipboard!", "success");
+    }
+  }
+
+  function handlePrint() {
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  }
+
+  async function handleRate(stars: number) {
+    if (!isAuthenticated) {
+      showToast("Please log in to rate this recipe", "error");
+      return;
+    }
+    if (isRating || !recipe) return;
+    setIsRating(true);
+    try {
+      const res = await apiClient.post<ApiResponse<Recipe>>(`/recipe/${recipe._id}/rate`, { rating: stars });
+      setRecipe(res.data.data);
+      showToast(`Thank you! Rated ${stars} star${stars > 1 ? "s" : ""}`, "success");
+    } catch {
+      showToast("Failed to submit rating", "error");
+    } finally {
+      setIsRating(false);
+    }
+  }
+
   function toggleIngredient(idx: number) {
     setCheckedIngredients((prev) => ({ ...prev, [idx]: !prev[idx] }));
   }
 
-  const isOwner = Boolean(recipe && user && recipe.owner === user.id);
+  const ownerObj = recipe && typeof recipe.owner === "object" ? recipe.owner : null;
+  const ownerId = recipe
+    ? typeof recipe.owner === "object" && recipe.owner !== null
+      ? recipe.owner._id
+      : recipe.owner
+    : "";
+  const isOwner = Boolean(recipe && user && ownerId === user.id);
   const isFavourite = recipe ? favouriteIds.has(recipe._id) : false;
 
   return (
@@ -117,22 +165,30 @@ function RecipeDetail() {
                 </span>
               </div>
 
-              {isOwner && (
-                <div className="flex items-center gap-2">
-                  <Link href={`/my-recipes/${recipe._id}`}>
-                    <Button variant="ghost" aria-label="Edit recipe">
-                      <HiOutlinePencil /> Edit
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" aria-label="Share recipe" onClick={handleShare}>
+                  <HiOutlineShare /> Share
+                </Button>
+                <Button variant="ghost" aria-label="Print recipe" onClick={handlePrint}>
+                  <HiOutlinePrinter /> Print
+                </Button>
+                {isOwner && (
+                  <>
+                    <Link href={`/my-recipes/${recipe._id}`}>
+                      <Button variant="ghost" aria-label="Edit recipe">
+                        <HiOutlinePencil /> Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="danger"
+                      aria-label="Delete recipe"
+                      onClick={() => setDeleteModalOpen(true)}
+                    >
+                      <HiOutlineTrash /> Delete
                     </Button>
-                  </Link>
-                  <Button
-                    variant="danger"
-                    aria-label="Delete recipe"
-                    onClick={() => setDeleteModalOpen(true)}
-                  >
-                    <HiOutlineTrash /> Delete
-                  </Button>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Title & brief summary */}
@@ -142,6 +198,16 @@ function RecipeDetail() {
             <p className="mt-3 max-w-3xl font-body text-lg leading-relaxed text-ink-muted">
               {recipe.brief}
             </p>
+
+            {ownerObj && (
+              <div className="mt-4 flex items-center gap-3">
+                <Avatar name={ownerObj.name} image={ownerObj.image} size={36} />
+                <div>
+                  <p className="font-body text-xs text-ink-muted">Recipe by</p>
+                  <p className="font-body text-sm font-semibold text-ink">{ownerObj.name}</p>
+                </div>
+              </div>
+            )}
 
             {/* Quick Metrics Bar */}
             <div className="mt-6 flex flex-wrap items-center gap-6 border-y border-linen-border py-4 font-body text-sm text-ink-muted">
@@ -161,12 +227,29 @@ function RecipeDetail() {
                 <HiOutlineEye className="text-outline" />
                 <span>{recipe.views} views</span>
               </span>
-              <span className="flex items-center gap-2">
-                <HiOutlineStar className="text-secondary" />
+              <div className="flex items-center gap-2">
+                <div className="flex items-center text-secondary">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      disabled={isRating}
+                      onClick={() => handleRate(star)}
+                      title={isAuthenticated ? `Rate ${star} star${star > 1 ? "s" : ""}` : "Log in to rate"}
+                      className="p-0.5 transition-transform hover:scale-125 focus:outline-none disabled:opacity-75"
+                    >
+                      {star <= Math.round(recipe.rating) ? (
+                        <HiStar className="h-4 w-4 fill-current text-secondary" />
+                      ) : (
+                        <HiOutlineStar className="h-4 w-4 text-secondary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
                 <span>
                   <strong>{recipe.rating.toFixed(1)}</strong> / 5 ({recipe.ratingsCount} reviews)
                 </span>
-              </span>
+              </div>
             </div>
 
             {/* Hero Media + Overview Row */}

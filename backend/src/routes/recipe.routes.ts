@@ -4,6 +4,7 @@ import { auth } from "../middlewares/auth.middleware";
 import {
   CreateRecipeSchema,
   UpdateRecipeSchema,
+  RateRecipeSchema,
 } from "../middlewares/validation/recipe.validation";
 
 import {
@@ -13,12 +14,14 @@ import {
   getRecipe,
   getUserRecipes,
   deleteRecipe,
+  addRating,
 } from "../controllers/recipe.controller";
 
 const router = Router();
 
 router.post("/recipe", auth, validate(CreateRecipeSchema), createRecipe);
 router.patch("/recipe/:id", auth, validate(UpdateRecipeSchema), updateRecipe);
+router.post("/recipe/:id/rate", auth, validate(RateRecipeSchema), addRating);
 
 router.get("/recipe", getRecipes);
 router.get("/recipe/my", auth, getUserRecipes);

@@ -69,14 +69,21 @@ function RecipeCard({ recipe, isFavourite, isAuthenticated, onToggleFavourite, a
           {recipe.name}
         </h2>
         <p className="font-body text-sm text-ink-muted line-clamp-2">{recipe.brief}</p>
-        <div className="mt-auto flex items-center gap-3 pt-2 font-body text-xs text-ink-muted">
-          <span className="flex items-center gap-1 font-mono tabular-nums">
-            <HiOutlineClock className="text-outline" />
-            {recipe.prepTime + recipe.cookTime}m
-          </span>
-          <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-ink-muted">
-            {recipe.category}
-          </span>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2 font-body text-xs text-ink-muted">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 font-mono tabular-nums">
+              <HiOutlineClock className="text-outline" />
+              {recipe.prepTime + recipe.cookTime}m
+            </span>
+            <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-ink-muted">
+              {recipe.category}
+            </span>
+          </div>
+          {typeof recipe.owner === "object" && recipe.owner?.name && (
+            <span className="max-w-[110px] truncate text-[11px] text-ink-muted/80" title={`by ${recipe.owner.name}`}>
+              by {recipe.owner.name}
+            </span>
+          )}
         </div>
       </Link>
       {actions && (

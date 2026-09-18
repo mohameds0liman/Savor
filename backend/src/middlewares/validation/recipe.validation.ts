@@ -91,9 +91,22 @@ export type CreateRecipeDTO = z.infer<
 
 /* ---------- Update ---------- */
 
-export const UpdateRecipeSchema =
-  CreateRecipeSchema.partial();
+export const UpdateRecipeSchema = CreateRecipeSchema.partial();
 
 export type UpdateRecipeDTO = z.infer<
   typeof UpdateRecipeSchema
+>;
+
+
+/* ---------- Rate ---------- */
+
+export const RateRecipeSchema = z.object({
+  rating: z
+    .number()
+    .min(1, "Rating must be at least 1")
+    .max(5, "Rating cannot exceed 5"),
+});
+
+export type RateRecipeDTO = z.infer<
+  typeof RateRecipeSchema
 >;

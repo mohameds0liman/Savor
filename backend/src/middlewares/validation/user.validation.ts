@@ -27,7 +27,10 @@ export type CreateUserDTO = z.infer<typeof CreateUserSchema>;
 
 //update user schema is a partial of create user schema, meaning that all fields are optional
 
-export const UpdateUserSchema =CreateUserSchema.partial().pick({name:true});
+export const UpdateUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name is too long").optional(),
+  image: z.string().url("Image must be a valid URL").or(z.literal("")).nullable().optional(),
+});
 
 export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>;
 export type ChangePasswordDTO = z.infer<typeof ChangePasswordSchema>;

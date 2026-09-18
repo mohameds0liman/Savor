@@ -109,7 +109,7 @@ function Navbar() {
                 onClick={() => setMenuOpen((v) => !v)}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-container-high"
               >
-                <Avatar name={user.name} size={32} className="text-sm" />
+                <Avatar name={user.name} image={user.image} size={32} className="text-sm" />
                 <span className="text-left">
                   <span className="block font-body text-sm font-semibold text-ink">
                     {user.name}

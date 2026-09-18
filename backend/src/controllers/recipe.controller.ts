@@ -56,38 +56,64 @@ export async function getUserRecipes(req: Request, res: Response) {
   }
 }
 
-export async function updateRecipe(req: Request<{ id: string }>, res: Response) {
-  try {
-    const recipe = await recipeService.getRecipe(req.params.id);
-    if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
-    }
-    if (req.user?.id !== recipe.owner.toString()) {
-      return res.status(403).json({ message: "You are not authorized to update this recipe" });
-    }
-    const updatedRecipe = await recipeService.updateRecipe(req.params.id, req.body);
-    res.status(200).json({message:"Recipe Updated Successfully",data:updatedRecipe});
-  } catch (err) {res.status(500).json({ 
-    message: "Internal Server Error",
-    error:`error: ${(err as Error).name}: ${(err as Error).message}`
-  });
-  }
-}
+export async function updateRecipe(req: Request<{ id: string }>, res: Response) {                                                                        
+  try {                                                                                                                                                  
+    const recipe = await recipeService.getRecipe(req.params.id);                                                                                         
+    if (!recipe) {                                                                                                                                       
+      return res.status(404).json({ message: "Recipe not found" });                                                                                      
+    }                                                                                                                                                    
+                                                                                                                                                             
+    const ownerId = (recipe.owner as any)?._id                                                                                                           
+      ? (recipe.owner as any)._id.toString()                                                                                                             
+      : recipe.owner.toString();                                                                                                                         
+                                                                                                                                                             
+    if (req.user?.id !== ownerId) {                                                                                                                      
+      return res.status(403).json({ message: "You are not authorized to update this recipe" });                                                          
+    }                                                                                                                                                    
+                                                                                                                                                             
+    const updatedRecipe = await recipeService.updateRecipe(req.params.id, req.body);                                                                     
+    res.status(200).json({ message: "Recipe Updated Successfully", data: updatedRecipe });                                                               
+  } catch (err) {                                                                                                                                        
+    res.status(500).json({                                                                                                                               
+      message: "Internal Server Error",                                                                                                                  
+      error: `error: ${(err as Error).name}: ${(err as Error).message}`                                                                                  
+    });                                                                                                                                                  
+  }                                                                                                                                                      
+}    
 
+    export async function addRating(req: Request<{ id: string }>, res: Response) {                                                                           
+      try {                                                                                                                                                  
+        const { rating } = req.body;                                                                                                                         
+        const updatedRecipe = await recipeService.addRating(req.params.id, rating);                                                                          
+        res.status(200).json({ message: "Recipe Rated Successfully", data: updatedRecipe });                                                                 
+      } catch (err) {                                                                                                                                        
+        res.status(500).json({                                                                                                                               
+          message: "Internal Server Error",                                                                                                                  
+          error: `error: ${(err as Error).name}: ${(err as Error).message}`                                                                                  
+        });                                                                                                                                                  
+      }                                                                                                                                                      
+    }   
+
+    
 export async function deleteRecipe(req: Request<{ id: string }>, res: Response) {
   try {
     const recipe = await recipeService.getRecipe(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: "Recipe not found" });
     }
-    if (req.user?.id !== recipe.owner.toString()) {
+    const ownerId = (recipe.owner as any)?._id
+      ? (recipe.owner as any)._id.toString()
+      : recipe.owner.toString();
+
+    if (req.user?.id !== ownerId) {
       return res.status(403).json({ message: "You are not authorized to delete this recipe" });
     }
     const deletedRecipe = await recipeService.deleteRecipe(req.params.id);
-    res.status(200).json({message:"Recipe Deleted Successfully",data:deletedRecipe});
-  } catch (err) {res.status(500).json({ 
-    message: "Internal Server Error" ,
-    error:`error: ${(err as Error).name}: ${(err as Error).message}`
-  });
+    res.status(200).json({ message: "Recipe Deleted Successfully", data: deletedRecipe });
+  } catch (err) {
+    res.status(500).json({ 
+      message: "Internal Server Error",
+      error: `error: ${(err as Error).name}: ${(err as Error).message}`
+    });
   }
 }
