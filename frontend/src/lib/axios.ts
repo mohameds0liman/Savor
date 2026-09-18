@@ -1,25 +1,3 @@
-// // shared axios instance for all requests carrying auth token
-// // Use apiClient in protected pages instead of raw axios
-// // but for public pages use axios directly
-// import axios from "axios";
-// import { API_URL } from "./api";
-
-// const apiClient = axios.create({
-//   baseURL: `${API_URL}/api`,
-// });
-
-// // attach token on every request if present
-// apiClient.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// export default apiClient;
-
-
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { API_URL } from "./api";
 
